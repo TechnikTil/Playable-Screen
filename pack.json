@@ -1,0 +1,7 @@
+{
+	"name": "Playable Screen",
+	"description": "You play as the FUCKING window.",
+	"restart":false,
+	"runsGlobally": true,
+	"color": [255, 255, 255]
+}
