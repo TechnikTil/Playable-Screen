@@ -233,6 +233,18 @@ function onMoveCamera(character)
 			setProperty("camFollow.x", getMidpointX(getOpponentName()) - 100 - getProperty(getOpponentName()..'.cameraPosition[0]') - getProperty(getCameraOffsetName()..'CameraOffset[0]'));
 		end
 		setProperty("camFollow.y", getMidpointY(getOpponentName()) - 100 + getProperty(getOpponentName()..'.cameraPosition[1]') + getProperty(getCameraOffsetName()..'CameraOffset[1]'));
+
+		-- for the mods that override camera movement
+		local thingy = 0;
+
+		if getOpponentName() == 'dad' then
+			thingy = 150;
+		else
+			thingy = -100;
+		end
+
+		setProperty(getPlayerName()..'Group.x', getProperty('camFollow.x') + thingy - 0.5);
+		setProperty(getPlayerName()..'Group.y', getProperty('camFollow.y') + 100 - 0.5);
 	end
 end
 
