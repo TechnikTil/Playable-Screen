@@ -210,11 +210,15 @@ function onUpdatePost(elapsed)
 		setPropertyFromClass('flixel.FlxG', 'stage.window.width', screenWidth);
 		setPropertyFromClass('flixel.FlxG', 'stage.window.height', screenHeight);
 
-		if getPropertyFromClass('flixel.FlxG', 'stage.window.fullscreen') then
-			setPropertyFromClass('flixel.FlxG', 'stage.window.fullscreen', false);
-		end
-
 		windowPosDirty = false;
+	end
+
+	if getPropertyFromClass('flixel.FlxG', 'stage.window.fullscreen') then
+		setPropertyFromClass('flixel.FlxG', 'stage.window.fullscreen', false);
+	end
+
+	if getPropertyFromClass('flixel.FlxG', 'stage.window.maximized') then
+		setPropertyFromClass('flixel.FlxG', 'stage.window.maximized', false);
 	end
 
 	setProperty('missOverlay.visible', stringEndsWith(curAnim, 'miss'));
