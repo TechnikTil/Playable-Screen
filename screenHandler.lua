@@ -180,12 +180,12 @@ function onCreatePost()
 	makeGraphic('missOverlay', screenWidth, screenHeight);
 	setObjectCamera('missOverlay', 'camOther');
 	setProperty('missOverlay.color', getColorFromHex('565694'));
-	setProperty('missOverlay.alpha', 0.8);
+	setProperty('missOverlay.alpha', 0);
 	addLuaSprite('missOverlay');
 
-	if playerHasSkinOn() then
+	--[[if playerHasSkinOn() then
 		setProperty("iconP1.flipX", true);
-	end
+	end]]
 
 	baseWindow.x = (getPropertyFromClass('flixel.FlxG', 'stage.window.display.bounds.width') - screenWidth) / 2;
 	baseWindow.y = (getPropertyFromClass('flixel.FlxG', 'stage.window.display.bounds.height') - screenHeight) / 2;
@@ -194,62 +194,50 @@ end
 local windowPosDirty = true;
 
 function onUpdatePost(elapsed)
-	local curAnim = getProperty(getPlayerName()..'.animation.curAnim.name');
-	local animDetails = getAnimDetails(curAnim);
+	local tags = getTagsWithSkin();
+	for i=1,#tags do
+		local curAnim = getProperty(tags[i]..'.animation.curAnim.name');
+		local animDetails = getAnimDetails(curAnim);
 
-	if animDetails ~= nil then
-		local curFrameDetails = animDetails.frames[getProperty(getPlayerName()..'.animation.curAnim.curFrame')+1];
-		setPropertyFromClass('flixel.FlxG', 'stage.window.x', baseWindow.x + curFrameDetails.x);
-		setPropertyFromClass('flixel.FlxG', 'stage.window.y', baseWindow.y + curFrameDetails.y);
-		setPropertyFromClass('flixel.FlxG', 'stage.window.width', screenWidth + curFrameDetails.width);
-		setPropertyFromClass('flixel.FlxG', 'stage.window.height', screenHeight + curFrameDetails.height);
-		windowPosDirty = true;
-	elseif windowPosDirty then
-		setPropertyFromClass('flixel.FlxG', 'stage.window.x', baseWindow.x);
-		setPropertyFromClass('flixel.FlxG', 'stage.window.y', baseWindow.y);
-		setPropertyFromClass('flixel.FlxG', 'stage.window.width', screenWidth);
-		setPropertyFromClass('flixel.FlxG', 'stage.window.height', screenHeight);
+		if animDetails ~= nil then
+			local curFrameDetails = animDetails.frames[getProperty(tags[i]..'.animation.curAnim.curFrame')+1];
+			setPropertyFromClass('flixel.FlxG', 'stage.window.x', baseWindow.x + curFrameDetails.x);
+			setPropertyFromClass('flixel.FlxG', 'stage.window.y', baseWindow.y + curFrameDetails.y);
+			setPropertyFromClass('flixel.FlxG', 'stage.window.width', screenWidth + curFrameDetails.width);
+			setPropertyFromClass('flixel.FlxG', 'stage.window.height', screenHeight + curFrameDetails.height);
+			windowPosDirty = true;
+		elseif windowPosDirty then
+			setPropertyFromClass('flixel.FlxG', 'stage.window.x', baseWindow.x);
+			setPropertyFromClass('flixel.FlxG', 'stage.window.y', baseWindow.y);
+			setPropertyFromClass('flixel.FlxG', 'stage.window.width', screenWidth);
+			setPropertyFromClass('flixel.FlxG', 'stage.window.height', screenHeight);
 
-		windowPosDirty = false;
+			windowPosDirty = false;
+		end
+
+		if getPropertyFromClass('flixel.FlxG', 'stage.window.fullscreen') then
+			setPropertyFromClass('flixel.FlxG', 'stage.window.fullscreen', false);
+		end
+
+		if getPropertyFromClass('flixel.FlxG', 'stage.window.maximized') then
+			setPropertyFromClass('flixel.FlxG', 'stage.window.maximized', false);
+		end
+
+		setProperty('missOverlay.visible', stringEndsWith(curAnim, 'miss'));
 	end
-
-	if getPropertyFromClass('flixel.FlxG', 'stage.window.fullscreen') then
-		setPropertyFromClass('flixel.FlxG', 'stage.window.fullscreen', false);
-	end
-
-	if getPropertyFromClass('flixel.FlxG', 'stage.window.maximized') then
-		setPropertyFromClass('flixel.FlxG', 'stage.window.maximized', false);
-	end
-
-	setProperty('missOverlay.visible', stringEndsWith(curAnim, 'miss'));
 end
 
-
+local prevCamFocus = 'dad';
 function onMoveCamera(character)
-	if character == getPlayerName() then
-		if getOpponentName() == 'dad' then
-			setProperty("camFollow.x", getMidpointX(getOpponentName()) + 150 + getProperty(getOpponentName()..'.cameraPosition[0]') + getProperty(getCameraOffsetName()..'CameraOffset[0]'));
-		else
-			setProperty("camFollow.x", getMidpointX(getOpponentName()) - 100 - getProperty(getOpponentName()..'.cameraPosition[0]') - getProperty(getCameraOffsetName()..'CameraOffset[0]'));
-		end
-		setProperty("camFollow.y", getMidpointY(getOpponentName()) - 100 + getProperty(getOpponentName()..'.cameraPosition[1]') + getProperty(getCameraOffsetName()..'CameraOffset[1]'));
-
-		-- for the mods that override camera movement
-		local thingy = 0;
-
-		if getOpponentName() == 'dad' then
-			thingy = 150;
-		else
-			thingy = -100;
-		end
-
-		setProperty(getPlayerName()..'Group.x', getProperty('camFollow.x') + thingy - 0.5);
-		setProperty(getPlayerName()..'Group.y', getProperty('camFollow.y') + 100 - 0.5);
+	if getProperty(character..'.curCharacter') == 'screen' or getProperty(character..'.curCharacter') == 'screen-player' then
+		cameraSetTarget(prevCamFocus == 'boyfriend' and 'bf' or prevCamFocus);
+	else
+		prevCamFocus = character;
 	end
 end
 
 function getAnimDetails(name)
-	for i=1,#animations do 
+	for i=1,#animations do
 		if animations[i].name == name then
 			return animations[i];
 		end
@@ -258,40 +246,20 @@ function getAnimDetails(name)
 	return nil;
 end
 
-function getPlayerName()
-	if playerHasSkinOn() then
-		return 'boyfriend';
-	else
-		return 'dad';
-	end
-end
+function getTagsWithSkin()
+	local tags = {};
 
-function getOpponentName()
-	if not playerHasSkinOn() then
-		return 'boyfriend';
-	else
-		return 'dad';
-	end
-end
-
-function getCameraOffsetName()
-	if playerHasSkinOn() then
-		return 'boyfriend';
-	else
-		return 'opponent';
-	end
-end
-
-function playerHasSkinOn()
-	if isRoomConnected() then
-		if isSwapSides() then
-			return getPlayerSkinName(1) == 'screen';
-		else
-			return getPlayerSkinName(2) == 'screen';
+	local groupNames = {'boyfriendGroup', 'gfGroup', 'dadGroup'};
+	for j=1,#groupNames do
+		for i=0,getProperty(groupNames[j]..'.members.length') - 1 do
+			local charId = getPropertyFromGroup(groupNames[j]..'.members', i, 'curCharacter');
+			if charId == 'screen' or charId == 'screen-player' then
+				table.insert(tags, groupNames[j]..'.members['..i..']');
+			end
 		end
-	else
-		return playsAsBF();
 	end
+
+	return tags;
 end
 
 function onDestroy(name)
